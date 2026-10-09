@@ -6,6 +6,78 @@
 
 ---
 
+## 🔰 小白 3 分钟极速上手指南 (Beginner Quick Start)
+
+即使你刚接触 AI Agent、不会复杂的配置或终端指令，也可以轻松把这个工具包接入你的 AI 助手（如 Claude Code、Codex、WorkBuddy、Cursor，甚至普通网页版 ChatGPT/Claude）。
+
+### 第一步：你的电脑需要准备什么？（只需装一次）
+
+这个 Skill 由三个业界最成熟的开源多媒体引擎驱动：`ffmpeg`（音视频转码）、`yt-dlp`（视频下载）、`ImageMagick`（图片处理）。请在终端/命令行窗口敲入一行对应系统的命令安装：
+
+- **🍎 macOS 苹果电脑用户**（打开系统自带“终端”应用）：
+  ```bash
+  brew install ffmpeg yt-dlp imagemagick
+  ```
+- **🪟 Windows 用户**（按 `Win + R` 键，输入 `powershell` 回车打开）：
+  ```powershell
+  winget install Gyan.FFmpeg yt-dlp.yt-dlp ImageMagick.ImageMagick
+  ```
+- **🐧 Linux 用户**（Ubuntu / Debian）：
+  ```bash
+  sudo apt update && sudo apt install -y ffmpeg imagemagick && pip install --upgrade yt-dlp
+  ```
+
+---
+
+### 第二步：如何安装到你的 AI 助手里？（挑选你正在用的工具）
+
+#### 方案 1：Claude Code / Antigravity 用户
+在终端执行克隆，直接装进官方 Skill 目录：
+```bash
+# Claude Code 技能目录：
+git clone https://github.com/hoangngochuong24947-gif/media-toolkit.git ~/.claude/skills/media-toolkit
+
+# Antigravity 技能目录：
+git clone https://github.com/hoangngochuong24947-gif/media-toolkit.git ~/.gemini/config/skills/media-toolkit
+```
+
+#### 方案 2：Codex / WorkBuddy / CodeBuddy 用户
+大部分 Agent 工具默认认 `~/.agents/skills/` 目录：
+```bash
+git clone https://github.com/hoangngochuong24947-gif/media-toolkit.git ~/.agents/skills/media-toolkit
+```
+*💡 如果不习惯敲命令：直接点击 GitHub 页面右上角的绿色按钮 **`Code` -> `Download ZIP`**，解压后把整个 `media-toolkit` 文件夹拖进你项目工程里的 `.agents/skills/` 目录即可。*
+
+#### 方案 3：Cursor / Windsurf / VSCode 用户
+把解压后的 `media-toolkit` 文件夹直接复制到你当前的项目根目录下，在聊天对话框里跟 AI 说：
+> “请严格参照项目中 `media-toolkit/SKILL.md` 的规范来帮我下载、压缩或处理多媒体文件。”
+
+#### 方案 4：普通网页版用户（ChatGPT / Claude / DeepSeek 网页端，无本地 Agent 也能用！）
+直接打开本仓库中的 [`SKILL.md`](SKILL.md) 文件，把全部文字复制粘贴给网页里的 AI，并对它说：
+> “你现在是专业音视频自动化专家，请阅读以上规范。请按照这份规范里的最佳命令，帮我处理以下视频需求……”
+
+---
+
+### 第三步：真实案例实战 —— 怎么一句话触发它？
+
+以一个最实用的日常场景为例：**“听说英伟达发布了新硬件 DGX Spark，想让 AI 去 YouTube 找视频，整理一份技术研报并下载最高画质视频”**。
+
+你只需要在聊天框对你的 AI Agent 发送这**一句话**：
+
+> 💬 **触发提示词（Prompt 模板）：**  
+> **“帮我在 YouTube 上找一下 NVIDIA DGX Spark 相关的视频，用媒体处理工具提取字幕做一份技术省流研报，并把官方最高画质视频下载下来。”**
+
+#### AI 接到指令后会自动完成全套动作：
+1. **自动搜索定位**：AI 会自动执行 `ytsearch5:NVIDIA DGX Spark` 快速列出候选，无需你手动去网页找链接。
+2. **零成本极速蒸馏**：AI 不下载沉重的完整视频，而是 1 秒内抓取原声字幕，自动总结出：
+   - 核心硬件规格：20 核 ARM CPU、Blackwell GPU（6,144 核心）、128GB 统一显存、1 PFLOP 算力；
+   - 自动生成结构化的 Markdown 深度学习研报。
+3. **最高画质无损抓取**：AI 会自动调度 `yt-dlp` 将最佳画质视频轨与音频轨无损合并为 4K UHD 的 MP4 视频存入下载目录。
+
+全程无需你手动找链接、换下载器，真正实现“动动嘴皮子，产物全到手”！
+
+---
+
 ## 🌟 Core Engineering Principles
 
 1. **🛡️ Zero-Keychain Popup Invariant**:
