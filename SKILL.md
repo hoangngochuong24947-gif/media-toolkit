@@ -1,11 +1,11 @@
 ---
 name: media-toolkit
-description: "Process, distill, compress, and download audio/video/images using ffmpeg, yt-dlp, and ImageMagick (magick). Use when the user wants to: (1) distill technical talks or lectures into markdown notes or transcripts; (2) convert screen recordings (.mov/.mp4) into high-quality, lightweight GIFs for GitHub READMEs or PRs; (3) compress large screen recordings or meetings without visible quality loss; (4) extract clean audio/mp3 from videos or links for podcasts; (5) download videos or audio streams from 1800+ sites (Bilibili, YouTube, X, etc.); (6) trim, transcode, or inspect media files with ffprobe; or (7) batch convert images (HEIC -> WebP), resize, compress, and strip EXIF/GPS metadata via magick."
+description: "Process, distill, compress, search, and download audio/video/images using ffmpeg, yt-dlp, and ImageMagick (magick). Use when the user wants to: (1) search, discover, and download videos on YouTube/Bilibili by keyword or topic without needing pre-discovered URLs; (2) distill technical talks or lectures into markdown notes or transcripts; (3) convert screen recordings (.mov/.mp4) into high-quality, lightweight GIFs for GitHub READMEs or PRs; (4) compress large screen recordings or meetings without visible quality loss; (5) extract clean audio/mp3 from videos or links for podcasts; (6) download videos or audio streams from 1800+ sites (Bilibili, YouTube, X, etc.); (7) trim, transcode, or inspect media files with ffprobe; or (8) batch convert images (HEIC -> WebP), resize, compress, and strip EXIF/GPS metadata via magick."
 ---
 
 # Media Toolkit
 
-The universal multimedia automation toolkit powered by `ffmpeg`, `yt-dlp`, and `magick`. Operates across 7 dedicated branches to transform unstructured video/audio/image assets into clean knowledge artifacts, publication-ready project assets, and shareable media files.
+The universal multimedia automation toolkit powered by `ffmpeg`, `yt-dlp`, and `magick`. Operates across 8 dedicated branches to transform unstructured video/audio/image assets into clean knowledge artifacts, publication-ready project assets, and shareable media files.
 
 ## Invariant Foundations & Environment
 
@@ -30,6 +30,7 @@ Identify the user intent and execute the corresponding branch:
 
 | Intent | Leading Trigger Words | Target Output | Branch |
 | :--- | :--- | :--- | :--- |
+| **关键词搜索与定向抓取** | 找视频, 搜视频, 搜油管, search youtube, download by topic, 找一下X相关的视频 | 检索候选清单 / 自动定位下载最高匹配视频 | [Branch 0](#branch-0-query-based-discovery--download-主题搜索与定向抓取) |
 | **技术演讲省流蒸馏** | 视频总结, 讲座笔记, 提取字幕, 演讲提炼, distill talk | Markdown 结构化研报 / 知识卡片 | [Branch 1](#branch-1-technical-talk-distillation-视频讲座省流蒸馏) |
 | **开源 Demo 动图** | 录屏转gif, demo gif, 演示动图, PR动图, make gif | 高清超清循环 GIF (<5MB / <10MB) | [Branch 2](#branch-2-high-aesthetic-demo-gif-录屏制作高清-gif) |
 | **视频脱脂瘦身** | 压缩视频, 录屏压缩, 会议视频太大了, 视频瘦身 | 高画质低体积 MP4 (压缩率 70-90%) | [Branch 3](#branch-3-video-slimming--compression-录屏与会议脱脂瘦身) |
@@ -37,6 +38,52 @@ Identify the user intent and execute the corresponding branch:
 | **全网视频抓取** | 下载视频, download video, bilibili, youtube | 1080P/4K 无损封装 MP4 | [Branch 5](#branch-5-stream-download-全网音视频下载) |
 | **无损剪切与体检** | 剪切视频, 视频截取, ffprobe, 诊断视频格式, 旋转 | 秒级剪切片段 / 媒体元数据报告 | [Branch 6](#branch-6-lossless-trimming--diagnostics-精准剪切与体检) |
 | **图像批处理与脱敏** | heic转webp, 批量转图, 抹掉GPS, 压图, magick, 转换webp | 高画质脱敏 WebP / 图像套件 | [Branch 7](#branch-7-batch-image-processing--privacy-scrubbing-图像批处理与隐私脱敏) |
+
+---
+
+## Branch 0: Query-Based Discovery & Download (主题搜索与定向抓取)
+
+When user provides a topic, keyword, or concept without a direct URL (e.g. *"找一下 DGX Spark 相关的视频下载下来"*, *"搜一下 3Blue1Brown 傅里叶变换的视频并提取音频"*):
+
+### 1. Zero-Config Built-in yt-dlp Search Engine
+`yt-dlp` natively supports query searches across YouTube, Bilibili, and other platforms without requiring external search API keys:
+
+- **YouTube Search**: Prefix with `ytsearch[N]:<query>` (e.g. `ytsearch5:NVIDIA DGX Spark`)
+- **YouTube Date Sorted**: Prefix with `ytsearchdate[N]:<query>`
+- **Bilibili Search**: Prefix with `bilisearch[N]:<query>`
+
+#### Mode A: Interactive Candidate Listing (Flat Search, <1s response)
+When the user asks to "find" or "look up" videos, list candidates first using flat-playlist mode:
+```bash
+# Fast metadata search without downloading heavy streams
+yt-dlp --flat-playlist --print "%(id)s | %(title)s | %(duration_string)s | %(uploader)s | https://www.youtube.com/watch?v=%(id)s" "ytsearch5:<QUERY>"
+```
+
+#### Mode B: One-Shot Search, Download, or Distill
+When the user directly asks to "search and download/extract":
+```bash
+OUT_DIR="${MEDIA_OUTPUT_DIR:-./output}"
+
+# 1. Search and download the single best match into MP4:
+yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 -P "$OUT_DIR" "ytsearch1:<QUERY>"
+
+# 2. Search and extract MP3 podcast audio from the top match:
+yt-dlp -x --audio-format mp3 --audio-quality 0 -P "$OUT_DIR" -o "%(title)s.%(ext)s" "ytsearch1:<QUERY>"
+
+# 3. Search and extract native subtitles for distillation (Branch 1 fast-path):
+yt-dlp --write-sub --write-auto-sub --sub-lang "zh-Hans,en" --skip-download -P "$OUT_DIR" "ytsearch1:<QUERY>"
+```
+
+### 2. Multi-Agent Synergy (Collaboration with Search Skills)
+If the host environment equips dedicated web/social intelligence skills (such as `agent-reach` or Exa web search):
+- **Role Division**:
+  - **Search Skills (e.g. `agent-reach`)**: Handle full-web exploration, community discussions (Reddit/X/Bilibili), comment sentiments, and cross-platform candidate URL curation.
+  - **`media-toolkit`**: Accepts curated URLs or topic search queries to execute heavy media tasks: lossless 4K download, audio extraction, smart palette GIF generation, and lecture distillation.
+- **Workflow**:
+  1. If user asks "调研并下载 X 视频" -> First use `agent-reach` or `ytsearch` to identify the most authoritative video URL.
+  2. Hand off the resolved URL to `media-toolkit` Branch 1 (for distillation) or Branch 5 (for MP4 download).
+
+---
 
 ---
 

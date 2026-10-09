@@ -62,10 +62,11 @@ scoop install ffmpeg yt-dlp imagemagick
 
 ---
 
-## 🚀 7 Core Routing Branches
+## 🚀 8 Core Routing Branches
 
 | Branch | Description | Typical Use Case |
 | :--- | :--- | :--- |
+| **Branch 0** | [Topic & Keyword Discovery](#branch-0-topic--keyword-discovery) | Search YouTube/Bilibili by keywords, list candidate links, or one-shot download |
 | **Branch 1** | [Technical Talk Distillation](#branch-1-technical-talk-distillation) | Summarize keynote videos, extract dialogue, and produce Markdown study reports |
 | **Branch 2** | [High-Aesthetic Demo GIF](#branch-2-high-aesthetic-demo-gif) | Convert terminal/UI screen recordings into crisp, lightweight GIFs (<5MB) |
 | **Branch 3** | [Video Slimming & Compression](#branch-3-video-slimming--compression) | Compress meeting recordings or screen captures by 70–90% without visible loss |
@@ -75,6 +76,20 @@ scoop install ffmpeg yt-dlp imagemagick
 | **Branch 7** | [Batch Image Processing & Privacy Scrubbing](#branch-7-batch-image-processing--privacy-scrubbing) | Convert HEIC/PNG to WebP, resize geometries, and wipe GPS/EXIF tags |
 
 ---
+
+### Branch 0: Topic & Keyword Discovery
+Search and discover videos directly without pre-existing URLs:
+```bash
+# 1. Flat list top 5 candidates (<1s, zero-download metadata probe)
+yt-dlp --flat-playlist --print "%(id)s | %(title)s | %(duration_string)s | %(uploader)s | https://www.youtube.com/watch?v=%(id)s" "ytsearch5:<KEYWORD>"
+
+# 2. One-shot search and download best match into 1080P/4K MP4
+yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 "ytsearch1:<KEYWORD>"
+
+# 3. Search and extract MP3 podcast audio from the top match
+yt-dlp -x --audio-format mp3 --audio-quality 0 -o "%(title)s.%(ext)s" "ytsearch1:<KEYWORD>"
+```
+*Note: Seamlessly coordinates with search skills (e.g. `agent-reach` or Exa) for multi-platform web/social intelligence.*
 
 ### Branch 1: Technical Talk Distillation
 Extract native subtitles without downloading heavy video streams:
