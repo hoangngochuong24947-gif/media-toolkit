@@ -1,0 +1,28 @@
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Output & Temporary Files
+output/
+downloads/
+distill_output/
+*.mp4
+*.m4a
+*.mp3
+*.mov
+*.mkv
+*.gif
+*.webp
+*.png
+*.jpg
+*.jpeg
+*.vtt
+*.srt
+*.txt
+*.log
+ffmpeg2pass*
+
+# Environment & Credentials
+.env
+*.pem
+cookies.txt
