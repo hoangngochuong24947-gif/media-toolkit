@@ -5,6 +5,8 @@
 `media-toolkit` provides production-grade recipes, automated shell scripts, and an AI Agent skill specification to transform unstructured video, audio, and image assets into clean knowledge artifacts, publication-ready project assets, and lightweight media files.
 
 ---
+先安装本 skill，和其他 skill 一样，然后下面是相关的依赖
+
 
 ## 🔰 小白 3 分钟极速上手指南 (Beginner Quick Start)
 
