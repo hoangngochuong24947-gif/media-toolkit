@@ -6,7 +6,7 @@
 
 本仓库基于 [原 media-toolkit 项目](https://github.com/hoangngochuong24947-gif/media-toolkit) 修复和扩展，保留原始 Git 历史及 MIT 许可证，版本号不代表原作者的上游发布。
 
-**下载入口：[v0.5.0-local Release](https://github.com/cowboy596/media-toolkit/releases/tag/v0.5.0-local)**。仓库为私有，需要有访问权限的 GitHub 账号。
+**这是提交上游审阅的源码候选，不是上游正式发布。** 请先按[从源码使用](#从源码使用)配置工具；本 PR 不附带 Windows 二进制运行库。便携包说明记录已验证的交付形式，只有另行取得完整便携包时才适用。
 
 ## 能实现哪些功能
 
@@ -29,11 +29,11 @@
 | 媒体检查 | ffprobe 容器、编码、尺寸、时长信息；工具和安装自检 | 返回 JSON 诊断，方便排错与复核 |
 | 可选 API 转写 | 兼容 multipart 音频转写接口 | 必须显式开启网络调用；仅本地模拟服务验收通过，真实云服务需单独验证 |
 
-## 快速开始：Windows 便携包
+## Windows 便携包使用方式（需另行取得完整包）
 
-适合希望直接使用工具、无需自行配置 Python 和媒体依赖的用户。
+以下步骤适用于另行取得完整便携包的用户。直接克隆本仓库不会得到 `runtime`，请使用后文的源码安装步骤。
 
-1. 在 [Release](https://github.com/cowboy596/media-toolkit/releases/tag/v0.5.0-local) 下载 `media-toolkit-0.5.0-local-Windows.zip`。
+1. 取得包含运行库和组件许可证通知的完整 Windows 便携包；本源码 PR 没有提供该附件。
 2. **完整解压**到固定目录，例如 `D:\MediaToolkit`。进入其中包含 `media.cmd`、`check.cmd` 和 `runtime` 的 `media-toolkit` 文件夹。
 3. 在该文件夹打开 PowerShell，执行：
 
@@ -65,7 +65,7 @@
 
 ## 常用命令
 
-以下示例在 Windows 便携包目录执行。请替换输入路径和 `VIDEO_URL`，为输出选择未使用的文件名。
+以下示例在 Windows 便携包目录执行；**源码使用时，将 `.\media.cmd` 换成 `python .\scripts\media.py`**，并先配置媒体依赖。请替换输入路径和 `VIDEO_URL`，为输出选择未使用的文件名。
 
 ### 搜索、下载与字幕
 
@@ -245,6 +245,14 @@ python .\scripts\media.py inspect "D:\MediaInput\video.mp4"
 
 前面的 `.\media.cmd` 示例在源码方式下应换成 `python .\scripts\media.py`。
 
+源码安装为 Codex Skill：配置依赖并确认 `doctor` 成功后，在仓库根目录运行：
+
+```powershell
+python .\scripts\setup.py --install-to "$env:USERPROFILE\.codex\skills\media-toolkit" --backup-dir "D:\MediaToolkitBackup"
+```
+
+该安装保留已有 Skill 的备份，不安装外部工具；源码方式需继续保留工具可用的 PATH 或本机路径配置。
+
 若工具不在 PATH，可在根目录创建不提交的 `tool-paths.local.json`，例如：
 
 ```json
@@ -267,7 +275,14 @@ py -3.13 -m venv "D:\MediaASR"
 & "D:\MediaASR\Scripts\python.exe" -m pip install -r .\requirements-asr-lock.txt
 ```
 
-将配置里的 `asr-python` 指向该环境的 `Scripts/python.exe`。测试所需的额外依赖在 `tests/requirements.txt`。完整验收记录和日志见 [validation](validation/summary.json)。
+将配置里的 `asr-python` 指向该环境的 `Scripts/python.exe`。测试所需的额外依赖在 `tests/requirements.txt`。配置 FFmpeg、ImageMagick 和 yt-dlp 后，可执行：
+
+```powershell
+python -m pip install -r .\tests\requirements.txt
+python -m unittest discover -s tests -v
+```
+
+完整验收记录和日志见 [validation](validation/summary.json)。测试记录来自已验收源码和迁移便携包，当前 PR 执行代码与该源码快照一致。
 
 ## 当前验收范围
 

@@ -7,7 +7,7 @@
     "install-skill.cmd": "aeef8a27f2fd4e85f635d814f3df1e110a36cb97fdf1e34d4dad2088ca876b55",
     "LICENSE": "0afc55f3baa2a8d47149e6e92b7163b21a1a00b4b8948c24b6b0d3286782a9c4",
     "media.cmd": "06416ce4af20ca5b3f029cb76dbb237d2353f59a11c05b7e4b0b739e23f3a78b",
-    "README.md": "b4e511ccbf8e64f1272841f26cd7ac97380aacfc38be316cc3777810a3b1d1b4",
+    "README.md": "98decbfb7979512a1242d578ebb98d289a30b78d04168a317ac73b35653264fa",
     "references/capability-parity.md": "4c87a636b2bf5714e272a916718f2c3d69889ed4ee3310523c396237a8038684",
     "references/customer-workflow.md": "631ae1ca7d38388dfe1f84ffdea7a7e217034e295453f2c74d72b0040ac27206",
     "references/distill-workflow.md": "1ee3c85b845fbd7c0a2edce2ed7df893c633536319afcd95d98cf08fd137c903",
@@ -40,11 +40,12 @@
     "tests/test_parity.py": "cadff8d8ddee76e5d7373ee75076ac23a64a934faa5f3fc02ef059c3a240b228"
   },
   "publication": {
-    "repository": "cowboy596/media-toolkit",
-    "tag": "v0.5.0-local",
-    "visibility": "private",
+    "repository": "cowboy596/media-toolkit-upstream",
+    "upstream": "hoangngochuong24947-gif/media-toolkit",
+    "branch": "upstream/customer-workflow-0.5",
+    "kind": "source-only upstream contribution candidate",
     "source_code_matches_accepted_snapshot": true,
-    "readme_changes": "Chinese capability list, installation, CLI examples, persistent task workflow, recovery and validation scope",
+    "readme_changes": "Source installation, capabilities, examples and portable-package scope; no private download dependency",
     "license_changes": "Original upstream MIT file retained with upstream line endings"
   }
 }

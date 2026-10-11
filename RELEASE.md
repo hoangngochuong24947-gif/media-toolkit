@@ -1,13 +1,17 @@
-Media Toolkit 0.5.0-local：已验收的本地客户交付候选。保留原项目历史与 MIT 许可证。
+# 0.5.0-local source contribution candidate
 
-新增持久任务、明确搜索范围与选取原因、关键词轮询/日期排序、源绑定续传/进度、字幕失败回退本地 ASR，以及证据校验后的完成状态。原有媒体处理功能保留。宿主 AI 负责阅读和报告撰写，CLI 负责执行与验证。
+This is a source-only contribution for upstream review, not an upstream release.
+It preserves the original Git history and MIT license. No portable runtime,
+model weights, downloaded media, cookies, local tool profile or backup is included.
 
-源码与迁移 Windows 包各 94 项测试通过，零跳过。真实 YouTube 任务完成两条字幕、一个完整解码的视频与十条引文报告。实际 HTTP 续传、本地中文 ASR、安装检查和目录迁移验证通过。
+The executable source matches the accepted 0.5.0-local snapshot. See README.md
+for source installation, capabilities and examples, and validation/summary.json
+for the test scope. The previously tested Windows portable package is a separate
+local delivery artifact; this PR does not distribute it or link to private assets.
 
-下载 Windows ZIP 后完整解压，运行 check.cmd，再通过 media.cmd 使用；安装 skill 使用 install-skill.cmd 安装目录 备份目录。依赖在便携包内，无需修改全局 PATH；模型权重不包含，需要缓存或首次明确下载。已安装 skill 指向包内运行库，请保留该目录。
-
-源码 ZIP 是原验收快照；仓库 README 另增发布链接与上游归属说明，执行代码一致。SHA256SUMS 校验附件。未发布测试视频、浏览器凭据、本机工具配置或原 skill 备份。
-
-另一台物理干净客户机验收尚未执行；不承诺固定速度、画质、压缩比例、全平台覆盖或科学/语音识别准确率。网络及平台授权限制仍适用。
-
-Windows 运行库各组件适用各自许可证，清单和通知位于包内 RUNTIME-NOTICES.md、runtime/licenses 和各发行包元数据。核心项目 MIT 不替代这些组件的许可证。
+Validation recorded 94 source tests and 94 relocated Windows-package tests, with
+zero skips, plus actual HTTP range resume, local Chinese ASR and one complete
+YouTube transcript/download/report workflow. Physical clean-client installation,
+actual cloud transcription and macOS/Linux hardware acceleration remain unverified.
+Reports are authored by the host AI; citation checks do not certify scientific or
+speech-recognition accuracy. Third-party runtime components retain their own licenses.

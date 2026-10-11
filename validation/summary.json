@@ -60,5 +60,6 @@
       "verified_files": 36,
       "seconds": 0.022
     }
-  ]
+  ],
+  "asset_scope": "Previously verified local delivery archives; not distributed by this source-only PR."
 }
