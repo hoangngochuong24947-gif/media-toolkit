@@ -5,7 +5,7 @@
     "CHANGELOG.md": "425ab8dbd07985a5dd408cc27a1e1cef36e3989966f03e850a8d574a0343f10e",
     "check.cmd": "ae560561c11d3d6074ec6e3f4df090f72d41c806a63d0438083d6fb48c21787b",
     "install-skill.cmd": "aeef8a27f2fd4e85f635d814f3df1e110a36cb97fdf1e34d4dad2088ca876b55",
-    "LICENSE": "8b487c76638b62fa9c5ec1d66cbea2a948940596aa8e9c542bd790a84289541c",
+    "LICENSE": "0afc55f3baa2a8d47149e6e92b7163b21a1a00b4b8948c24b6b0d3286782a9c4",
     "media.cmd": "06416ce4af20ca5b3f029cb76dbb237d2353f59a11c05b7e4b0b739e23f3a78b",
     "README.md": "80a66c5229bd92ffb96e7065743e3fffc6f9e8967b89c4fed0c38e23eb4b1f69",
     "references/capability-parity.md": "4c87a636b2bf5714e272a916718f2c3d69889ed4ee3310523c396237a8038684",
@@ -44,6 +44,7 @@
     "tag": "v0.5.0-local",
     "visibility": "private",
     "source_code_matches_accepted_snapshot": true,
-    "readme_changes": "Upstream attribution, release and validation links only"
+    "readme_changes": "Upstream attribution, release and validation links only",
+    "license_changes": "Original upstream MIT file retained with upstream line endings"
   }
 }
