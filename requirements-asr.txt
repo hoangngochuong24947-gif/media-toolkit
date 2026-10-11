@@ -1,0 +1,4 @@
+# Optional; install in a dedicated Python 3.13 environment, never globally.
+faster-whisper==1.2.1
+# PyAV 19 removed the metadata_errors argument used by this faster-whisper.
+av==16.1.0

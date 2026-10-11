@@ -1,0 +1,64 @@
+{
+  "version": "0.5.0-local",
+  "upstream_base": "6355bcd4996ffc6272842a9a9599e14a8be33017",
+  "source_tests": {
+    "passed": 94,
+    "skipped": 0,
+    "log": "source-tests.log"
+  },
+  "relocated_windows_tests": {
+    "passed": 94,
+    "skipped": 0,
+    "log": "moved-package-tests.log"
+  },
+  "checks": {
+    "restricted_path_and_chinese_space_paths": true,
+    "portable_dependencies_consistent": true,
+    "installed_launch_and_manifest_check": true,
+    "local_chinese_asr": true,
+    "actual_http_range_resume": true,
+    "real_youtube_project_complete": true,
+    "relocated_project_verified": true
+  },
+  "real_project": {
+    "transcripts": 2,
+    "video_downloads": 1,
+    "report_claims": 10,
+    "video": {
+      "bytes": 144083929,
+      "sha256": "eb242fb9c4930a7d5bc0f32319a86fbc05d2540b03cc2e33339886346ff29f2e",
+      "actual": {
+        "duration": 184.261,
+        "width": 3840,
+        "height": 2160,
+        "codecs": [
+          "av1",
+          "opus"
+        ]
+      }
+    }
+  },
+  "boundaries": {
+    "physical_clean_client_tested": false,
+    "speech_weights_included": false,
+    "scientific_and_speech_accuracy_certified": false,
+    "bilibili_after_tun_change_verified": false,
+    "macos_and_linux_acceleration_verified": false
+  },
+  "assets": [
+    {
+      "file": "media-toolkit-0.5.0-local-Windows.zip",
+      "bytes": 331687336,
+      "sha256": "27f886539dc3e6fcb23e47b37b3d2ef2134a0c650d249e1d2eb8b4993bfbc143",
+      "verified_files": 5151,
+      "seconds": 17.927
+    },
+    {
+      "file": "media-toolkit-0.5.0-local-source.zip",
+      "bytes": 77292,
+      "sha256": "8453b08be55b09c84c005321b8a6998c38762fc2caf58e64c5d22d94accd10b7",
+      "verified_files": 36,
+      "seconds": 0.022
+    }
+  ]
+}

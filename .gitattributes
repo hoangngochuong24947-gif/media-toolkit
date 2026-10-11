@@ -1,0 +1,2 @@
+# Preserve exact accepted bytes for MANIFEST verification.
+* -text

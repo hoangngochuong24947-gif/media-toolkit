@@ -26,3 +26,11 @@ ffmpeg2pass*
 .env
 *.pem
 cookies.txt
+
+# Python caches
+__pycache__/
+*.pyc
+!tests/requirements.txt
+!requirements-asr.txt
+!requirements-asr-lock.txt
+tool-paths.local.json
