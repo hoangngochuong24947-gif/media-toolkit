@@ -12,7 +12,8 @@ Hermes Agent (Nous Research) loads skills from `~/.hermes/skills/`. Official CLI
 
 ```bash
 curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-git clone https://github.com/hoangngochuong24947-gif/media-toolkit.git ~/.hermes/skills/media-toolkit
+mkdir -p ~/.hermes/skills/media
+git clone https://github.com/hoangngochuong24947-gif/media-toolkit.git ~/.hermes/skills/media/media-toolkit
 hermes skills list
 ```
 

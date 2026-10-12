@@ -112,7 +112,7 @@ Read `text/`. Copy `references/report-template.md` to `$TASK/report.md`. Fill it
 User: `帮我搜 3 个关于 X 的视频并总结`
 
 ```bash
-# skill root, for example ~/.hermes/skills/media-toolkit
+# skill root, for example ~/.hermes/skills/media/media-toolkit
 bash scripts/doctor.sh
 
 TASK="${MEDIA_OUTPUT_DIR:-./output}/x-topic"

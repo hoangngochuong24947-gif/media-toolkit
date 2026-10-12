@@ -5,6 +5,8 @@ version: "1.0.0"
 license: MIT
 compatibility: "macOS, Linux, or Windows via WSL or Git Bash. Needs bash, ffmpeg, ffprobe, yt-dlp, ImageMagick, and deno or node. Optional ASR uses a local python3 venv."
 platforms: [linux, macos, windows]
+prerequisites:
+  commands: [bash, ffmpeg, ffprobe, yt-dlp]
 metadata:
   hermes:
     tags: [video, audio, image, download, subtitles, transcribe, ffmpeg, yt-dlp]
@@ -14,7 +16,7 @@ metadata:
 
 # Media Toolkit
 
-Work in the skill directory (the folder that contains this file), for example `~/.hermes/skills/media-toolkit`. Paths below are relative to that directory.
+Work in the skill directory (the folder that contains this file), for example `~/.hermes/skills/media/media-toolkit`. Paths below are relative to that directory.
 
 Call `ffmpeg`, `ffprobe`, `yt-dlp`, and ImageMagick yourself. Scripts are shortcuts. You write any summary. Nothing here calls an LLM.
 
