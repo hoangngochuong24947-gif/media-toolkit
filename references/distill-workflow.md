@@ -1,167 +1,152 @@
-# Technical Talk Distillation Pipeline
+# Distill a talk
 
-A systematic workflow to extract, transcribe, synthesize, and compile long technical video/audio talks into high-density structured knowledge artifacts.
+The host agent does the reading and the writing. This skill only fetches evidence and turns it into timestamped plain text. It does not call an LLM and it does not summarize.
 
----
+Output root: `${MEDIA_OUTPUT_DIR:-./output}/<task>/`.
 
-## 1. Zero-Download Subtitle Acquisition (Fast Path)
+## Confirmation gates
 
-Always inspect whether the hosting platform already provides native or auto-generated subtitles before pulling heavy video/audio streams:
+Cheap reads go ahead. Costly steps stop until the user agrees.
 
-```bash
-# 1. List available subtitle languages
-yt-dlp --list-subs "<URL>"
+| Step | Ask first? | What the agent does |
+| :--- | :--- | :--- |
+| Search, list formats, list subs, `doctor.sh` | No | Run it |
+| Fetch platform subtitles (`--skip-download`) | No | Run it |
+| `subs_to_text.sh` on files already downloaded | No | Run it |
+| Full video or audio download | Yes | `download.sh` prints count and size and exits 0. Show that. After a yes, re-run with `--yes` |
+| Local ASR | Yes | `transcribe.sh` prints videos, duration, model, download size, and a rough time estimate, then exits 0. After a yes, re-run with `--yes` |
+| System packages / sudo | Yes | `bootstrap.sh` is a dry-run. After a yes, `--yes` |
+| Browser cookies | Yes, once | Ask which browser and profile. Pass them only with `--yes` |
+| X login (`TWITTER_AUTH_TOKEN`, `TWITTER_CT0`, or X cookies) | Yes, once | Ask. Pass via the environment. Never echo or commit the values |
+| Agent-Reach CLI | Yes | `bootstrap.sh --with-reach` is a dry-run. It does not configure logins |
+| A loop over many files | Yes | Show the count, then wait |
 
-# 2. Download subtitles without downloading video media
-yt-dlp --write-sub --write-auto-sub \
-  --sub-lang "zh-Hans,zh-CN,en,en-US" \
-  --skip-download \
-  -P "${MEDIA_OUTPUT_DIR:-./downloads}" \
-  -o "talk_sub.%(ext)s" "<URL>"
-```
+`--yes` and `MEDIA_CONFIRM=1` mean the user already agreed. Do not pass them first.
 
-### Cleaning Subtitles (VTT/SRT to Clean Text)
-VTT and SRT subtitle files contain timestamps, line numbers, and repeated rolling caption blocks. Use this quick one-liner to strip cue artifacts into continuous dialogue:
+## Data handed between steps
 
-```bash
-sed '/^[0-9]/d; /^$/d; /-->/d; /^WEBVTT/d; /^Kind:/d; /^Language:/d' "${MEDIA_OUTPUT_DIR:-./downloads}/talk_sub.zh-Hans.vtt" | uniq > "${MEDIA_OUTPUT_DIR:-./downloads}/clean_transcript.txt"
-```
+| Step | Reads | Writes |
+| :--- | :--- | :--- |
+| Search | A query | Lines whose last field is `webpage_url` |
+| Select | The user asked for N items, or picks from the list | `sources.txt`, one URL per line |
+| Subtitles | Those URLs | `subs/*.srt` |
+| Text | Those subtitle files | `text/*.txt` or `text/<stem>/part-NNN.txt` |
+| ASR, only after a yes | The same URLs, if subs were missing | `asr/*.json`, then more text files |
+| Report | The text files | `report.md` from `references/report-template.md` |
 
----
+Keep `webpage_url` as returned. Do not build `https://www.youtube.com/watch?v=ID`.
 
-## 2. Decoupled Audio Transcription (When No Subtitles Exist)
-
-When no soft subtitles are available, fetch the lightweight audio stream anonymously:
-
-```bash
-# Download pure audio stream (no cookies required, zero keychain popup risk)
-yt-dlp -x --audio-format m4a -P "${MEDIA_OUTPUT_DIR:-./downloads}" -o "talk_audio.%(ext)s" "<URL>"
-```
-
-### Option A: Local `faster-whisper` (Recommended for Local GPU/MPS/CPU)
-
-Run transcription locally using the high-performance CTranslate2 engine:
+## 1. Search
 
 ```bash
-# Install dependency
-pip install faster-whisper
-
-# Run standalone Python transcription CLI
-python -c '
-import sys
-from faster_whisper import WhisperModel
-
-audio_path = sys.argv[1] if len(sys.argv) > 1 else "talk_audio.m4a"
-# device can be "cuda", "mps", or "cpu"; compute_type can be "float16", "int8", or "default"
-model = WhisperModel("large-v3", device="auto", compute_type="default")
-
-segments, info = model.transcribe(audio_path, beam_size=5, vad_filter=True)
-print(f"Detected language: {info.language} with probability {info.language_probability:.2f}")
-
-with open("talk_transcript.srt", "w", encoding="utf-8") as srt_file, \
-     open("talk_transcript.txt", "w", encoding="utf-8") as txt_file:
-    for i, segment in enumerate(segments, start=1):
-        # Format SRT timestamp
-        def fmt(ts):
-            h = int(ts // 3600); m = int((ts % 3600) // 60); s = int(ts % 60); ms = int((ts % 1) * 1000)
-            return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
-        srt_file.write(f"{i}\n{fmt(segment.start)} --> {fmt(segment.end)}\n{segment.text.strip()}\n\n")
-        txt_file.write(f"[{fmt(segment.start)}] {segment.text.strip()}\n")
-
-print("Transcription saved to talk_transcript.srt and talk_transcript.txt")
-' "${MEDIA_OUTPUT_DIR:-./downloads}/talk_audio.m4a"
+yt-dlp --flat-playlist --print "%(title)s | %(duration_string)s | %(uploader)s | %(webpage_url)s" "ytsearch8:QUERY"
+yt-dlp --flat-playlist --print "%(title)s | %(duration_string)s | %(uploader)s | %(webpage_url)s" "bilisearch8:QUERY"
 ```
 
-### Option B: Standard OpenAI-Compatible Audio API
+Show the list. If the user said "3 videos", choose three of these URLs and write them to `sources.txt`. If they did not say how many, ask.
 
-Use standard cloud or self-hosted OpenAI-compatible transcription endpoints (OpenAI Whisper, Groq, local vLLM, or whisper.cpp server):
+## 2. Subtitles
+
+No confirmation. This does not download the video.
 
 ```bash
-# Ensure OPENAI_API_KEY and OPENAI_BASE_URL are configured
-# Example: https://api.openai.com/v1 or https://api.groq.com/openai/v1 or http://localhost:8080/v1
-curl -s "${OPENAI_BASE_URL:-https://api.openai.com/v1}/audio/transcriptions" \
-  -H "Authorization: Bearer ${OPENAI_API_KEY}" \
-  -H "Content-Type: multipart/form-data" \
-  -F file="@${MEDIA_OUTPUT_DIR:-./downloads}/talk_audio.m4a" \
-  -F model="whisper-1" \
-  -F response_format="verbose_json" \
-  > "${MEDIA_OUTPUT_DIR:-./downloads}/talk_transcript.json"
+TASK="${MEDIA_OUTPUT_DIR:-./output}/TASK"
+mkdir -p "$TASK/subs"
+while IFS= read -r url; do
+  yt-dlp --write-sub --write-auto-sub \
+    --sub-langs "zh-Hans,zh-CN,en.*,en" \
+    --convert-subs srt \
+    --skip-download \
+    -P "$TASK/subs" -o "%(id)s.%(ext)s" "$url"
+done < "$TASK/sources.txt"
 ```
 
-### Option C: Lightweight Standalone CLI (`whisper.cpp`)
+Manual subtitles beat automatic captions. Say which kind you used in the report.
 
-For completely self-contained C/C++ execution without Python dependencies:
+## 3. Timestamped text
 
 ```bash
-# Convert audio to 16kHz WAV required by whisper.cpp
-ffmpeg -i "${MEDIA_OUTPUT_DIR:-./downloads}/talk_audio.m4a" -ar 16000 -ac 1 -c:a pcm_s16le /tmp/talk_16k.wav
-
-# Run whisper.cpp binary
-whisper-cli -m models/ggml-large-v3.bin -f /tmp/talk_16k.wav -osrt -otxt -of "${MEDIA_OUTPUT_DIR:-./downloads}/talk_transcript"
-rm /tmp/talk_16k.wav
+bash scripts/subs_to_text.sh "$TASK"/subs/*.srt -o "$TASK/text"
 ```
 
----
+Each cue becomes:
 
-## 3. Knowledge Synthesis & Distillation Standards
-
-### 🌟 Core Quality Invariants
-1. **Zero Screenshots by Default**: Do not extract video frames or insert image placeholders into the report unless explicitly requested by the user. Keep artifacts lightweight, pure text, and focused on core reasoning.
-2. **Deep Anchor on Dialogue & Reasoning**:
-   - Synthesize chronologically with precise timestamp anchors (`[mm:ss]`).
-   - Extract underlying system design trade-offs, empirical benchmarks, and counter-intuitive insights.
-   - Preserve direct quotes for punchy or controversial claims.
-
-### Structured Synthesis Template
-
-```markdown
-# [Talk Title]: Technical Distillation & Key Takeaways
-
-- **Speaker / Organization**: [Name / Lab / Organization]
-- **Original Link**: [URL]
-- **Distilled At**: [YYYY-MM-DD]
-- **Tags**: #ai #systems #architecture
-
----
-
-## 1. Executive Summary (一分钟核心速览)
-- **Problem Statement**: What core technical bottleneck or industry pain point does this talk address?
-- **Core Proposal**: What novel paradigm, architecture, algorithm, or methodology was introduced?
-- **Key Outcomes**: What concrete metrics, speedups, or benchmark gains were validated?
-
----
-
-## 2. Technical Architecture & Core Primitives (核心系统原理与机制)
-- **Mechanics & Workflow**: Step-by-step breakdown of the technical components (include Mermaid diagrams where applicable).
-- **Architectural Trade-offs**: What compromises were made (e.g. latency vs. throughput, consistency vs. availability)?
-- **Key Equations / Algorithms**: Mathematical foundations or core pseudocode logic.
-
----
-
-## 3. Timestamped Milestones & Deep Insights (带时间戳的推演脉络)
-- `[04:20]` **Problem Discovery & Historical Context**: ...
-- `[12:45]` **Core Mechanism Walkthrough**: ...
-- `[23:10]` **Benchmarking & Empirical Validation**: ...
-- `[35:00]` **Limitations, Caveats & Future Outlook**: ...
-
----
-
-## 4. Entity & Concept Extraction (概念实体萃取)
-- [[Core Concept A]]: Definition, role, and practical application in this architecture.
-- [[Core Concept B]]: Comparison against traditional paradigms.
+```text
+[00:01:15.000 --> 00:01:18.200]
+the words, including lines that start with numbers
 ```
 
----
+Default chunk size is 12000 characters. A short file is one `.txt`. A long file becomes `text/<stem>/part-001.txt` plus `INDEX.txt`. Read the parts in order. Do not run `sed '/^[0-9]/d'` on subtitles; that deletes real lines such as "2026 results".
 
-## 4. Output Storage & Organization
+## 4. ASR only when subtitles are missing
 
-Save generated artifacts to the designated output folder:
+Tell the user, with the script's own plan:
 
 ```bash
-# Output directory can be customized via $MEDIA_OUTPUT_DIR (defaults to ./output)
-DEST_DIR="${MEDIA_OUTPUT_DIR:-./output}/distill"
-mkdir -p "$DEST_DIR"
-
-# Save distillation report
-# e.g., ${DEST_DIR}/YYYYMMDD_<Topic_Slug>.md
+bash scripts/transcribe.sh --model small --probe-url "URL"
 ```
+
+That exits 0 and prints:
+
+- which URL
+- duration
+- model (`small` unless they asked otherwise)
+- whether the weights are cached, or the first-download size (`large-v3` is about 2.9 GiB)
+- estimated audio size
+- a rough CPU time note (order of the audio duration for `small` int8, not a quote)
+
+Wait. After they agree:
+
+```bash
+bash scripts/bootstrap.sh --yes --with-asr   # only if the plan said the venv is missing; ask first
+bash scripts/transcribe.sh --yes --model small --probe-url "URL"
+bash scripts/subs_to_text.sh "$TASK"/asr/*.json -o "$TASK/text"
+```
+
+`--yes` on transcribe downloads the audio and may download the model. Both sizes were in the plan.
+
+## 5. The agent writes the report
+
+Read `text/`. Copy `references/report-template.md` to `$TASK/report.md`. Fill it. Cite timestamps from the text. This is the agent's job. Do not call another model from a script.
+
+## Worked example
+
+User: `帮我搜 3 个关于 X 的视频并总结`
+
+```bash
+# skill root, for example ~/.hermes/skills/media/media-toolkit
+bash scripts/doctor.sh
+
+TASK="${MEDIA_OUTPUT_DIR:-./output}/x-topic"
+mkdir -p "$TASK"
+
+# search: no ask
+yt-dlp --flat-playlist --print "%(title)s | %(duration_string)s | %(uploader)s | %(webpage_url)s" \
+  "ytsearch8:X" | tee "$TASK/search.txt"
+# agent picks 3 webpage_url lines into "$TASK/sources.txt"
+
+# subtitles: no ask
+mkdir -p "$TASK/subs"
+while IFS= read -r url; do
+  yt-dlp --write-sub --write-auto-sub --sub-langs "zh-Hans,zh-CN,en.*,en" \
+    --convert-subs srt --skip-download -P "$TASK/subs" -o "%(id)s.%(ext)s" "$url"
+done < "$TASK/sources.txt"
+
+bash scripts/subs_to_text.sh "$TASK"/subs/*.srt -o "$TASK/text"
+
+# if one URL had no subtitles, stop and show the plan:
+bash scripts/transcribe.sh --model small --probe-url "THAT_URL"
+# wait for the user, then and only then:
+# bash scripts/transcribe.sh --yes --model small --probe-url "THAT_URL"
+
+# do not download the full videos unless the user also wants the files.
+# if they do:
+bash scripts/download.sh URL1 URL2 URL3
+# show count and known-bytes, wait, then:
+# bash scripts/download.sh --yes URL1 URL2 URL3
+
+# agent reads "$TASK/text" and writes "$TASK/report.md"
+# template: references/report-template.md
+```
+
+Cookies, if a page asks for a login: ask once which browser and profile, then `bash scripts/download.sh --yes --cookies-from-browser "chrome:Profile 1" URL`.
