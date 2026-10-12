@@ -41,7 +41,11 @@ fi
 dry="$(bash "$ROOT/scripts/bootstrap.sh" --dry-run --with-reach)"
 printf '%s\n' "$dry" | grep -q 'bootstrap: dry-run'
 printf '%s\n' "$dry" | grep -q 'nothing installed'
-printf '%s\n' "$dry" | grep -q 'would-run: pipx install https://github.com/Panniantong/Agent-Reach/archive/main.zip'
+# The reach plan depends on the machine: keep an already installed CLI, plan the
+# pipx install, or report a missing Python 3.10+. Any one of the three is a
+# correct dry-run; what matters is that it never installs here.
+printf '%s\n' "$dry" | grep -qE '^(keep: agent-reach |would-run: pipx install |missing: Python 3\.10\+)'
+printf '%s\n' "$dry" | grep -q 'reach-source: https://github.com/Panniantong/Agent-Reach/archive/main.zip'
 printf '%s\n' "$dry" | grep -q 'reach-policy: no sudo'
 
 # Discovery is optional. A missing agent-reach does not change the doctor contract,
