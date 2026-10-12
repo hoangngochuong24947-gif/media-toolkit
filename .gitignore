@@ -2,10 +2,13 @@
 .DS_Store
 Thumbs.db
 
-# Output & Temporary Files
+# Output and scratch. Do not add a blanket *.txt rule: it hides requirements*.txt.
 output/
 downloads/
 distill_output/
+.venv/
+
+# Generated media
 *.mp4
 *.m4a
 *.mp3
@@ -18,11 +21,17 @@ distill_output/
 *.jpeg
 *.vtt
 *.srt
-*.txt
 *.log
+*.result.json
 ffmpeg2pass*
 
-# Environment & Credentials
+# Secrets. Never commit cookie exports.
 .env
 *.pem
 cookies.txt
+**/cookies.txt
+*cookies*.txt
+
+# Python
+__pycache__/
+*.py[cod]

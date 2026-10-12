@@ -1,0 +1,9 @@
+# Optional local transcription. Install only inside a virtualenv:
+#   python3 -m venv .venv
+#   . .venv/bin/activate
+#   python3 -m pip install -r requirements-asr.txt
+# Call python3, never bare python. Do not install these into the system interpreter.
+# Known-good pair: faster-whisper 1.2.1 still passes metadata_errors, which PyAV 19 removed.
+# Docs default to the small model. large-v3 is a separate ~2.9 GiB download.
+faster-whisper==1.2.1
+av==16.1.0
