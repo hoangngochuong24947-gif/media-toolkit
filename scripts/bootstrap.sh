@@ -11,6 +11,7 @@ DRY_FLAG=0
 YES_FLAG=0
 WITH_ASR=0
 WITH_REACH=0
+REACH_FAIL=0
 AGENT_REACH_URL="https://github.com/Panniantong/Agent-Reach/archive/main.zip"
 
 usage() {
@@ -219,15 +220,36 @@ if [ "$WITH_REACH" -eq 1 ]; then
       printf 'would-run: pipx install %s\n' "$AGENT_REACH_URL"
       printf 'fallback: python3 -m venv ~/.agent-reach-venv && ~/.agent-reach-venv/bin/python3 -m pip install %s\n' "$AGENT_REACH_URL"
     elif have pipx; then
-      pipx install "$AGENT_REACH_URL"
+      pipx install "$AGENT_REACH_URL" || REACH_FAIL=1
     elif python3 -m pipx --version >/dev/null 2>&1; then
-      python3 -m pipx install "$AGENT_REACH_URL"
+      python3 -m pipx install "$AGENT_REACH_URL" || REACH_FAIL=1
     else
       printf 'pipx missing; using ~/.agent-reach-venv (documented fallback, no sudo)\n'
-      python3 -m venv "${HOME}/.agent-reach-venv"
-      "${HOME}/.agent-reach-venv/bin/python3" -m pip install --disable-pip-version-check "$AGENT_REACH_URL"
-      mkdir -p "${HOME}/.local/bin"
-      ln -sfn "${HOME}/.agent-reach-venv/bin/agent-reach" "${HOME}/.local/bin/agent-reach"
+      venv_py="${HOME}/.agent-reach-venv/bin/python3"
+      if [ ! -x "$venv_py" ]; then
+        python3 -m venv "${HOME}/.agent-reach-venv"
+      fi
+      if ! "$venv_py" -m pip --version >/dev/null 2>&1; then
+        # Ubuntu can create a venv without ensurepip when python3-venv is absent.
+        # get-pip.py stays inside that venv. No sudo.
+        get_pip="$(mktemp "${TMPDIR:-/tmp}/get-pip.XXXXXX.py")"
+        if curl -fsSL https://bootstrap.pypa.io/get-pip.py -o "$get_pip"; then
+          "$venv_py" "$get_pip"
+        fi
+        rm -f "$get_pip"
+      fi
+      if "$venv_py" -m pip --version >/dev/null 2>&1; then
+        "$venv_py" -m pip install --disable-pip-version-check "$AGENT_REACH_URL"
+        mkdir -p "${HOME}/.local/bin"
+        ln -sfn "${venv_py%/*}/agent-reach" "${HOME}/.local/bin/agent-reach"
+      else
+        printf 'agent-reach install failed: venv has no pip. python3-venv or pipx would fix it.\n' >&2
+        REACH_FAIL=1
+      fi
+    fi
+    if [ "$APPLY" -eq 1 ] && ! have agent-reach && [ ! -x "${HOME}/.local/bin/agent-reach" ]; then
+      printf 'agent-reach install failed\n' >&2
+      REACH_FAIL=1
     fi
   fi
 else
@@ -259,6 +281,12 @@ fi
 export PATH="${HOME}/.local/bin:${HOME}/.deno/bin:${PATH}"
 if [ "$APPLY" -eq 1 ]; then
   bash "${SKILL_DIR}/scripts/doctor.sh"
+  doctor_status=$?
+  if [ "$REACH_FAIL" -ne 0 ]; then
+    printf 'bootstrap: agent-reach install failed\n' >&2
+    exit 1
+  fi
+  exit "$doctor_status"
 else
   bash "${SKILL_DIR}/scripts/doctor.sh" || true
   printf 'bootstrap: dry-run, nothing installed\n'
