@@ -1,6 +1,7 @@
 """Offline tests for optional stdlib helpers. No network."""
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -104,6 +105,45 @@ class TextTests(unittest.TestCase):
             self.assertIn("[00:00:01.000 --> 00:00:02.000]", joined)
             self.assertTrue((root / "text" / "talk" / "INDEX.txt").is_file())
             self.assertGreater(len(list((root / "text" / "talk").glob("part-*.txt"))), 1)
+
+
+class SourceTests(unittest.TestCase):
+    def test_urls_keep_fields_and_filter_platform(self):
+        from optional_tools import load_source_items
+
+        payload = {
+            "items": [
+                {
+                    "url": "https://x.com/example/status/1",
+                    "platform": "twitter",
+                    "title": "a post",
+                    "author": "someone",
+                    "published": "2026-01-02",
+                    "why_selected": "mentions the topic",
+                },
+                {
+                    "url": "https://www.bilibili.com/video/BVxxxxxxxxxx",
+                    "platform": "bilibili",
+                    "title": "a video",
+                    "author": "uploader",
+                    "published": "",
+                    "why_selected": "BV link from bili search",
+                },
+            ]
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sources.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            items = load_source_items(path)
+            self.assertEqual(items[0]["why_selected"], "mentions the topic")
+            script = Path(__file__).resolve().parents[1] / "scripts" / "optional_tools.py"
+            proc = subprocess.run(
+                [sys.executable, str(script), "sources", str(path), "--platform", "twitter"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.stdout.strip(), "https://x.com/example/status/1")
 
 
 class TimeoutTests(unittest.TestCase):

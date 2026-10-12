@@ -377,6 +377,36 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     return 0
 
 
+def load_source_items(path: Path) -> list[dict]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        items = data.get("items", [])
+    elif isinstance(data, list):
+        items = data
+    else:
+        raise ToolkitError("sources file must be a list or an object with items", "invalid_argument")
+    if not isinstance(items, list):
+        raise ToolkitError("sources items must be a list", "invalid_argument")
+    cleaned: list[dict] = []
+    for item in items:
+        if not isinstance(item, dict):
+            raise ToolkitError("each source must be an object", "invalid_argument")
+        url = str(item.get("url") or "").strip()
+        if not url:
+            raise ToolkitError("source item missing url", "invalid_argument")
+        cleaned.append(item)
+    return cleaned
+
+
+def _cmd_sources(args: argparse.Namespace) -> int:
+    items = load_source_items(Path(args.file))
+    for item in items:
+        if args.platform and str(item.get("platform") or "") != args.platform:
+            continue
+        print(str(item["url"]).strip())
+    return 0
+
+
 def _cmd_receipt(args: argparse.Namespace) -> int:
     payload = write_receipt(Path(args.input), {"command": "receipt"})
     print(json.dumps(payload, ensure_ascii=False))
@@ -402,6 +432,10 @@ def build_parser() -> argparse.ArgumentParser:
     text.add_argument("-o", "--output", required=True)
     text.add_argument("--chunk-chars", type=int, default=12000)
     text.set_defaults(func=_cmd_text)
+    sources = sub.add_parser("sources", help="Print URLs from sources.json. Does not download.")
+    sources.add_argument("file")
+    sources.add_argument("--platform", help="Keep items whose platform field matches")
+    sources.set_defaults(func=_cmd_sources)
     return parser
 
 

@@ -38,8 +38,30 @@ if grep -q 'merge-output-format' "$TMP/yt-log"; then
 fi
 
 # bootstrap dry-run must not be the install path.
-dry="$(bash "$ROOT/scripts/bootstrap.sh" --dry-run)"
+dry="$(bash "$ROOT/scripts/bootstrap.sh" --dry-run --with-reach)"
 printf '%s\n' "$dry" | grep -q 'bootstrap: dry-run'
 printf '%s\n' "$dry" | grep -q 'nothing installed'
+printf '%s\n' "$dry" | grep -q 'would-run: pipx install https://github.com/Panniantong/Agent-Reach/archive/main.zip'
+printf '%s\n' "$dry" | grep -q 'reach-policy: no sudo'
+
+# Discovery is optional. A missing agent-reach does not change the doctor contract,
+# and a fake doctor JSON is summarized without printing channel messages.
+PATH="/usr/bin:/bin" bash "$ROOT/scripts/doctor.sh" > "$TMP/doc-absent.txt" || true
+grep -q 'capability discovery (agent-reach): absent' "$TMP/doc-absent.txt"
+cat > "$TMP/bin/agent-reach" <<EOF
+#!/bin/sh
+if [ "\$1" = "doctor" ] && [ "\$2" = "--json" ]; then
+  printf '%s\n' '{"twitter":{"status":"warn","active_backend":null,"message":"secret-should-not-print"},"web":{"status":"ok","active_backend":"jina"}}'
+fi
+EOF
+chmod +x "$TMP/bin/agent-reach"
+PATH="$TMP/bin:/usr/bin:/bin" bash "$ROOT/scripts/doctor.sh" > "$TMP/doc-reach.txt" || true
+grep -q 'discovery-backend: twitter status=warn active_backend=-' "$TMP/doc-reach.txt"
+grep -q 'discovery-backend: web status=ok active_backend=jina' "$TMP/doc-reach.txt"
+grep -q 'capability discovery (agent-reach): ready' "$TMP/doc-reach.txt"
+if grep -q 'secret-should-not-print' "$TMP/doc-reach.txt"; then
+  printf 'doctor must not print agent-reach channel messages\n' >&2
+  exit 1
+fi
 
 printf 'gates: ok\n'

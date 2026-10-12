@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Report local-media, online-download, transcription, and image readiness.
 # Exit 1 when a required tool is missing: ffmpeg, ffprobe, or yt-dlp.
-# ImageMagick, a JS runtime, and python3 are capabilities, not hard failures.
+# ImageMagick, a JS runtime, python3, and agent-reach are capabilities, not hard failures.
 # Bash 3.2 or newer. No third-party dependencies.
 set -u
 
@@ -238,10 +238,56 @@ if have ffmpeg; then
   info "fallback: libx264 / libx265"
 fi
 
+discovery="absent"
+if have agent-reach; then
+  ok "agent-reach: $(command -v agent-reach) (optional; absence is not a failure)"
+  json_tmp="$(mktemp "${TMPDIR:-/tmp}/agent-reach-doctor.XXXXXX")"
+  if have timeout; then
+    timeout 40 agent-reach doctor --json > "$json_tmp" 2>/dev/null || true
+  else
+    agent-reach doctor --json > "$json_tmp" 2>/dev/null || true
+  fi
+  if [ -s "$json_tmp" ] && have python3; then
+    if python3 - "$json_tmp" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+try:
+    data = json.load(open(path, encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    sys.exit(1)
+if not isinstance(data, dict) or not data:
+    sys.exit(1)
+for key in sorted(data):
+    row = data[key] if isinstance(data[key], dict) else {}
+    status = row.get("status") or "?"
+    backend = row.get("active_backend") or "-"
+    # Status and backend only. Do not print channel messages; they can be long
+    # and are not needed to route. Never print credentials.
+    print(f"discovery-backend: {key} status={status} active_backend={backend}")
+PY
+    then
+      discovery="ready"
+    else
+      warn "agent-reach doctor --json did not return a channel map"
+      discovery="degraded"
+    fi
+  else
+    warn "agent-reach is on PATH but doctor --json produced no JSON"
+    discovery="degraded"
+  fi
+  rm -f "$json_tmp"
+else
+  info "agent-reach not installed. Optional discovery companion (MIT, not vendored)."
+  info "Ask the user, then: bash scripts/bootstrap.sh --with-reach    (dry-run until --yes)"
+fi
+
 printf '%s\n' "capability local-media: ${local_media}"
 printf '%s\n' "capability online-download: ${online}"
 printf '%s\n' "capability transcription: ${transcription}"
 printf '%s\n' "capability images: ${images}"
+printf '%s\n' "capability discovery (agent-reach): ${discovery}"
 if [ -n "$IM_KIND" ]; then
   printf '%s\n' "imagemagick-choice: ${IM_KIND}"
 else

@@ -2,7 +2,7 @@
 
 The host agent fills this in after reading the timestamped text. No script in this skill calls an LLM or writes this prose.
 
-Copy this file to `${MEDIA_OUTPUT_DIR:-./output}/<task>/report.md` and replace the blanks. Write in the user's language. Cite only timestamps that appear in the text files.
+Copy this file to `${MEDIA_OUTPUT_DIR:-./output}/<task>/report.md` and replace the blanks. Write in the user's language. Cite only timestamps that appear in the text files. If the task also read posts (X, Reddit, XiaoHongShu, and so on), cite that saved post text in the same report. Do not invent a timestamp for a sentence that was only in a post.
 
 ```markdown
 # <title>
@@ -16,7 +16,7 @@ Copy this file to `${MEDIA_OUTPUT_DIR:-./output}/<task>/report.md` and replace t
 
 | webpage_url | evidence file | kind |
 | :--- | :--- | :--- |
-| https://... | text/....txt | manual subtitles / auto captions / local ASR |
+| https://... | text/....txt or posts.txt | manual subtitles / auto captions / local ASR / post text |
 
 ## Summary
 

@@ -17,6 +17,8 @@ Cheap reads go ahead. Costly steps stop until the user agrees.
 | Local ASR | Yes | `transcribe.sh` prints videos, duration, model, download size, and a rough time estimate, then exits 0. After a yes, re-run with `--yes` |
 | System packages / sudo | Yes | `bootstrap.sh` is a dry-run. After a yes, `--yes` |
 | Browser cookies | Yes, once | Ask which browser and profile. Pass them only with `--yes` |
+| X login (`TWITTER_AUTH_TOKEN`, `TWITTER_CT0`, or X cookies) | Yes, once | Ask. Pass via the environment. Never echo or commit the values |
+| Agent-Reach CLI | Yes | `bootstrap.sh --with-reach` is a dry-run. It does not configure logins |
 | A loop over many files | Yes | Show the count, then wait |
 
 `--yes` and `MEDIA_CONFIRM=1` mean the user already agreed. Do not pass them first.

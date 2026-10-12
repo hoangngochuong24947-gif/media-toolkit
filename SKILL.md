@@ -1,6 +1,6 @@
 ---
 name: media-toolkit
-description: "Process video, audio, and images. Use when the user asks to search, download, trim, compress, make a GIF, extract audio, convert an image, fetch subtitles, transcribe, or summarize a video. The host agent runs the commands and writes the summary. This skill does not call an LLM."
+description: "Process video, audio, and images, including X/Twitter videos. Use for search, download, trim, compress, GIF, audio extract, image convert, subtitles, transcribe, or a summary of a video or of videos inside posts. Optional Agent-Reach discovers pages and posts. The host agent writes the summary. This skill does not call an LLM."
 version: "1.0.0"
 license: MIT
 compatibility: "macOS, Linux, or Windows via WSL or Git Bash. Needs bash, ffmpeg, ffprobe, yt-dlp, ImageMagick, and deno or node. Optional ASR uses a local python3 venv."
@@ -33,7 +33,8 @@ Call `ffmpeg`, `ffprobe`, `yt-dlp`, and ImageMagick yourself. Scripts are shortc
 | Video/audio download | Yes | `bash scripts/download.sh URL...` prints count and size and exits 0. Then `--yes` |
 | Local ASR | Yes | `bash scripts/transcribe.sh` prints duration, model, download size, rough time, exits 0. Then `--yes` |
 | sudo / system packages | Yes | `bootstrap.sh` is a dry-run. Then `--yes` |
-| Browser cookies | Yes, once | Ask which browser and profile. Pass them only with `--yes` |
+| Browser cookies, or X `TWITTER_AUTH_TOKEN` / `TWITTER_CT0` | Yes, once | Ask which browser or confirm the env vars. Never echo or commit them |
+| Agent-Reach CLI | Yes | `bash scripts/bootstrap.sh --with-reach` (dry-run). Then `--yes`. No logins |
 | Loop over many files | Yes | Show the count, then wait |
 
 `--yes` or `MEDIA_CONFIRM=1` means the user already said yes. Do not pass it on the first run. Details: `references/distill-workflow.md`.
@@ -43,6 +44,7 @@ Call `ffmpeg`, `ffprobe`, `yt-dlp`, and ImageMagick yourself. Scripts are shortc
 | Task | Command | Detail |
 | :--- | :--- | :--- |
 | Search | `yt-dlp --flat-playlist --print "%(title)s \| %(webpage_url)s" "ytsearch5:QUERY"` or `bilisearch5:` | `references/yt-dlp.md` |
+| Posts, X, Reddit, XiaoHongShu, Bilibili search after HTTP 412 | `agent-reach doctor --json`, then the upstream command for `active_backend` | `references/discovery.md` |
 | Download | `bash scripts/download.sh URL` (plan, then `--yes`) | `references/yt-dlp.md` |
 | Notes | Subs, then `subs_to_text.sh`, then you write the report | `references/distill-workflow.md` |
 | Report | Copy `references/report-template.md` | you fill it in |
@@ -76,6 +78,10 @@ bash scripts/subs_to_text.sh ./output/x-topic/subs/*.srt -o ./output/x-topic/tex
 ```
 
 Full command list: `references/distill-workflow.md`.
+
+User: `看看 X 上大家怎么评价 <topic>，把里面的视频也总结一下`
+
+Search and post text go through Agent-Reach (`twitter search`). Video status URLs go through `yt-dlp --simulate -F`, then subtitles or `download.sh`. Ask once before X cookies or `TWITTER_AUTH_TOKEN` / `TWITTER_CT0`. Write `./output/<topic>/sources.json` (`url`, `platform`, `title`, `author`, `published`, `why_selected`). Exact commands: `references/discovery.md`.
 
 ## ImageMagick and hardware
 

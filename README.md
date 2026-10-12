@@ -28,6 +28,15 @@ git clone https://github.com/hoangngochuong24947-gif/media-toolkit.git ~/.agents
 
 Cursor: clone or copy the folder into the project (or into `~/.agents/skills/media-toolkit`) and tell the agent to follow `SKILL.md`.
 
+Optional discovery companion, [Agent-Reach](https://github.com/Panniantong/Agent-Reach) (MIT). This repo does not vendor it. Upstream says not to install the PyPI package of the same name. After the user agrees:
+
+```bash
+bash scripts/bootstrap.sh --with-reach
+bash scripts/bootstrap.sh --yes --with-reach
+```
+
+That is `pipx install` of their GitHub zip, or a user venv. It does not configure X cookies. Their installer does not write a Hermes skill. Copy the installed `agent_reach/skill` directory to `~/.hermes/skills/agent-reach` so `hermes skills list` shows it beside `media-toolkit`. Routing is in [`references/discovery.md`](references/discovery.md).
+
 ## Install tools
 
 Check what this machine is missing:
@@ -116,6 +125,7 @@ Illustrative prompt, not a recorded result: ask the agent to search a topic, sho
 | [`references/ffmpeg.md`](references/ffmpeg.md) | CRF, target size, GIF, trim, images, hardware fallback |
 | [`references/distill-workflow.md`](references/distill-workflow.md) | Search → subtitles → text the agent reads → report |
 | [`references/report-template.md`](references/report-template.md) | Blank report the agent fills in |
+| [`references/discovery.md`](references/discovery.md) | Optional Agent-Reach routing, X/Twitter, `sources.json` |
 | [`references/troubleshooting.md`](references/troubleshooting.md) | Laptop vs VM, PATH, ImageMagick 6 vs 7, python3 |
 
 Personal downloads on your own computer may use `--cookies-from-browser chrome|firefox|safari|edge`. Do not commit cookie files.

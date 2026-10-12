@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Optional Agent-Reach companion (MIT, not vendored): `doctor.sh` reports `discovery (agent-reach)` and per-channel `active_backend`; `bootstrap.sh --with-reach` installs the GitHub zip with pipx or a user venv and does not configure logins.
+- X/Twitter: yt-dlp for status videos, Agent-Reach `twitter` for search and post text, with a one-time confirmation before cookies or `TWITTER_AUTH_TOKEN` / `TWITTER_CT0`. Handoff file is `sources.json`.
 - Hermes / agentskills.io `SKILL.md` frontmatter, `scripts/bootstrap.sh` (dry-run unless `--yes`), and install notes for Hermes, Claude Code, Codex, and Cursor.
 - Distill path is agent-written. `scripts/subs_to_text.sh` emits timestamped text; `references/report-template.md` is the blank report. No script calls an LLM.
 - Confirmation gates: ASR and downloads print a plan and exit 0 until `--yes` or `MEDIA_CONFIRM=1`. Bootstrap does not prompt for sudo.

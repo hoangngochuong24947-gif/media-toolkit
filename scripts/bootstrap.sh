@@ -10,14 +10,19 @@ APPLY=0
 DRY_FLAG=0
 YES_FLAG=0
 WITH_ASR=0
+WITH_REACH=0
+AGENT_REACH_URL="https://github.com/Panniantong/Agent-Reach/archive/main.zip"
 
 usage() {
   cat <<'EOF'
-usage: bootstrap.sh [--dry-run] [--yes|--confirm] [--with-asr]
+usage: bootstrap.sh [--dry-run] [--yes|--confirm] [--with-asr] [--with-reach]
 
 Default is dry-run: print the plan and do not install.
 --yes installs. Ask the user before sudo or system packages, then pass --yes.
 --with-asr also creates .venv and installs requirements-asr.txt (only with --yes).
+--with-reach installs the Agent-Reach CLI from its GitHub zip (pipx, or a user venv).
+It does not use sudo, does not write logins or cookies, and does not run
+`agent-reach install --system`.
 MEDIA_CONFIRM=1 is the same as --yes.
 EOF
 }
@@ -27,6 +32,7 @@ while [ "$#" -gt 0 ]; do
     --yes|--confirm) YES_FLAG=1 ;;
     --dry-run) DRY_FLAG=1 ;;
     --with-asr) WITH_ASR=1 ;;
+    --with-reach) WITH_REACH=1 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'unknown argument: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -198,6 +204,39 @@ else
 fi
 
 ensure_user_path
+
+if [ "$WITH_REACH" -eq 1 ]; then
+  printf 'reach-policy: no sudo, no cookie configure, no TWITTER_* export, no agent-reach install --system\n'
+  printf 'reach-source: %s\n' "$AGENT_REACH_URL"
+  printf 'reach-note: do not pip-install the PyPI name agent-reach; upstream says that name is a different project\n'
+  if have agent-reach; then
+    printf 'keep: agent-reach %s\n' "$(command -v agent-reach)"
+  else
+    py_ok="$(python3 -c 'import sys; print("yes" if sys.version_info >= (3, 10) else "no")' 2>/dev/null || printf 'no')"
+    if [ "$py_ok" != "yes" ]; then
+      printf 'missing: Python 3.10+ (Agent-Reach requirement). Not installing.\n'
+    elif [ "$APPLY" -ne 1 ]; then
+      printf 'would-run: pipx install %s\n' "$AGENT_REACH_URL"
+      printf 'fallback: python3 -m venv ~/.agent-reach-venv && ~/.agent-reach-venv/bin/python3 -m pip install %s\n' "$AGENT_REACH_URL"
+    elif have pipx; then
+      pipx install "$AGENT_REACH_URL"
+    elif python3 -m pipx --version >/dev/null 2>&1; then
+      python3 -m pipx install "$AGENT_REACH_URL"
+    else
+      printf 'pipx missing; using ~/.agent-reach-venv (documented fallback, no sudo)\n'
+      python3 -m venv "${HOME}/.agent-reach-venv"
+      "${HOME}/.agent-reach-venv/bin/python3" -m pip install --disable-pip-version-check "$AGENT_REACH_URL"
+      mkdir -p "${HOME}/.local/bin"
+      ln -sfn "${HOME}/.agent-reach-venv/bin/agent-reach" "${HOME}/.local/bin/agent-reach"
+    fi
+  fi
+else
+  if have agent-reach; then
+    printf 'keep: agent-reach %s\n' "$(command -v agent-reach)"
+  else
+    printf 'optional: agent-reach not requested (bash scripts/bootstrap.sh --with-reach)\n'
+  fi
+fi
 
 if [ "$WITH_ASR" -eq 1 ]; then
   printf 'asr: python3 -m venv %s/.venv && python3 -m pip install -r requirements-asr.txt\n' "$SKILL_DIR"

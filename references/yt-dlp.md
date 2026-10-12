@@ -143,6 +143,19 @@ Cloud, VM, and datacenter IP addresses often get YouTube's "Sign in to confirm y
 
 If a video is only offered in some countries, yt-dlp cannot move the machine into that country. `--geo-bypass` only helps when the client address is already allowed and the site mis-detects it. A browser cookie exported from a session that can play the video is the honest signal. Do not promise a block bypass.
 
+## X / Twitter
+
+yt-dlp handles a status URL that contains a video. Text, threads, and search belong to Agent-Reach (`references/discovery.md`), not to yt-dlp.
+
+```bash
+yt-dlp --simulate -F "https://x.com/USER/status/ID"
+yt-dlp --simulate -F "https://twitter.com/USER/status/ID"
+```
+
+`--simulate` and `-F` only list formats. A public video sometimes works with no login. NSFW, private, and age-limited posts need a logged-in session. Ask once which browser and profile, then pass `--cookies-from-browser` only on a download the user has already approved (`scripts/download.sh --yes`). The same ask covers X credentials for the `twitter` CLI: `TWITTER_AUTH_TOKEN` and `TWITTER_CT0` must be environment variables in that shell. Do not echo them, do not write them into the repo, and do not commit them.
+
+Spaces and live broadcasts are unreliable in yt-dlp. If `-F` returns no video format, or says login or unsupported, stop and say so. Do not retry in a loop; X rate-limits aggressive clients.
+
 ## Bilibili HTTP 412
 
 412 from Bilibili is an anti-bot response: missing cookies, a rejected header, or a datacenter address. Try these in order:
@@ -157,6 +170,8 @@ yt-dlp --cookies-from-browser chrome \
 ```
 
 Also: upgrade yt-dlp to the known-good pin or newer, and slow down (`--sleep-requests 1 --limit-rate 2M`). Search still uses `%(webpage_url)s` so the BV or av link you pass back is the real page.
+
+When search itself returns 412, discover with Agent-Reach instead of yt-dlp: `bili search "QUERY" --type video` (see `references/discovery.md`). Put that BV or av URL in `sources.json`, then come back here to download or take subtitles.
 
 ## What yt-dlp will not do
 
