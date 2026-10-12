@@ -116,6 +116,39 @@ bash scripts/trim.sh input.mp4 00:00:01 00:00:05 accurate
 
 Illustrative prompt, not a recorded result: ask the agent to search a topic, show candidate `webpage_url` lines, and take subtitles for the one you pick. Do not treat a sample answer as measured hardware specs.
 
+## What yt-dlp can and cannot do
+
+A short checklist of what this skill actually drives with `yt-dlp`, and where it stops. Commands and recovery steps: [`references/yt-dlp.md`](references/yt-dlp.md). `bash scripts/doctor.sh` reports what is installed on the machine.
+
+Works today:
+
+- Search: `ytsearch5:QUERY`, `ytsearchdateN:`, `bilisearch5:QUERY`. Results print `%(webpage_url)s`, so Bilibili BV/av links stay correct.
+- Read-only listing: `--simulate -F` for formats, `--list-subs` for subtitle tracks. No confirmation needed.
+- Video download: `bv*+ba/b` merged to MP4 with a single-file fallback, plus a 720p-capped preset when size matters more than quality.
+- Audio download: `-x --audio-format mp3 --audio-quality 0`, or `scripts/download.sh --audio`.
+- Subtitles without the video: `--write-sub --write-auto-sub --sub-langs … --convert-subs srt --skip-download`, then `scripts/subs_to_text.sh` for timestamped text.
+- Cost shown first: `scripts/download.sh` prints item count and estimated bytes (`filesize_approx`), then exits until `--yes` or `MEDIA_CONFIRM=1`.
+- Playlists: `--yes-playlist --playlist-items A:B` with `%(playlist_index)03d` names. `download.sh` stays single-video (`--no-playlist`) unless you pass a playlist URL deliberately.
+- Politeness: `--sleep-requests`, `--max-sleep-interval`, `--limit-rate` for rate-limited or anti-bot sites.
+- JS challenges: `--js-runtimes deno` (preferred) or `node`, for YouTube n/nsig.
+- Gated pages: `--cookies-from-browser chrome|firefox|safari|edge[:Profile]` after one explicit ask, or a static `--cookies ~/.config/yt-dlp/cookies.txt` (mode 600, outside the repo, never committed).
+- X / Twitter status videos: `--simulate -F` first, then a gated download. Post text, threads, and search belong to Agent-Reach.
+- Bilibili HTTP 412: cookies plus `--referer https://www.bilibili.com`, a browser user-agent, and slower requests; or find the BV/av link with `bili search`.
+- Post-download check: a full `ffmpeg` decode, or `python3 scripts/optional_tools.py validate FILE`.
+- Local ASR when subtitles are missing: `scripts/transcribe.sh` (faster-whisper, `small` by default, `large-v3` is about 2.9 GiB). Also gated.
+
+Cannot do, by design:
+
+- DRM (Widevine and similar), even when a browser can play the file.
+- Paid, members-only, or purchased media the account does not own.
+- Live streams, premieres, and X Spaces at the live edge.
+- A guaranteed 4K file. You get the best format the site actually serves; a `-f` filter that matches nothing fails with "Requested format is not available".
+- A region-lock bypass. `--geo-bypass` only helps when the address is already allowed.
+- Logged-in downloads from a headless or VM host that cannot read that browser's cookie store. Export `cookies.txt` there instead.
+- YouTube on a datacenter IP. The "confirm you're not a bot" page is answered with cookies or by running on the user's own computer, not by updating yt-dlp.
+- Search or post text on X, Reddit, or XiaoHongShu (Agent-Reach), and no LLM summary. The host agent reads the text and writes the report; no script calls a model.
+- Unattended bulk loops. Many files, full downloads, ASR, system packages, and cookie reads all wait for a yes.
+
 ## Docs
 
 | File | What it answers |
