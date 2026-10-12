@@ -4,7 +4,7 @@
 # are skipped and the script says so.
 set -u
 
-SKILL_DIR="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
+SKILL_DIR="$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)"
 YT_DLP_VERSION="2026.08.19"
 APPLY=0
 DRY_FLAG=0

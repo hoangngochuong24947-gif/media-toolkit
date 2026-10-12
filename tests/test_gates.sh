@@ -2,7 +2,7 @@
 # Offline checks for confirmation gates. No network and no installs.
 set -eu
 
-ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
+ROOT="$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/gates.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 

@@ -54,7 +54,7 @@ case "$MODEL" in
   *) MODEL_SIZE="unknown; read the model card before downloading" ;;
 esac
 
-SKILL_DIR="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
+SKILL_DIR="$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)"
 HUB="${HF_HOME:-$HOME/.cache/huggingface}/hub"
 CACHE_DIR="${HUB}/models--Systran--faster-whisper-${MODEL}"
 if [ -d "$CACHE_DIR" ]; then
