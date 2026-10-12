@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- README: a "what yt-dlp can and cannot do" checklist — the supported search, format, download, subtitle, playlist, cookie, and recovery paths, and the boundaries (DRM, live edge, region locks, bot checks on datacenter IPs, no LLM work).
 - `tests/test_gates.sh`: the Agent-Reach dry-run assertion accepts any of the three valid reach plans (keep an installed CLI, plan the pipx install, report a missing Python 3.10+). The suite no longer fails on a machine that already has `agent-reach`, or on a host whose only `python3` is Apple's 3.9.
 - Optional Agent-Reach companion (MIT, not vendored): `doctor.sh` reports `discovery (agent-reach)` and per-channel `active_backend`; `bootstrap.sh --with-reach` installs the GitHub zip with pipx or a user venv and does not configure logins.
 - X/Twitter: yt-dlp for status videos, Agent-Reach `twitter` for search and post text, with a one-time confirmation before cookies or `TWITTER_AUTH_TOKEN` / `TWITTER_CT0`. Handoff file is `sources.json`.
