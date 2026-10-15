@@ -51,6 +51,7 @@ Media Toolkit 严格规范了 8 大核心能力分支的阈值、算法与临界
 * **快速探测模式**：1 秒内返回视频标题、时长、UP 主与真实链接，不下载任何流媒体数据。
 * **单步直达模式**：直接根据主题检索并下载最佳匹配的视频或音频。
 * **提示词**：*“帮我在 YouTube 上搜一下 3Blue1Brown 讲傅里叶变换的视频，把前 3 个候选列出来，并把最高清的一条音频提取出来。”*
+* **按账号找视频**：给出一个或多个用户名后，每个站点只拼一条主页地址。视频站直接列出最近的视频，交给字幕和总结。群体要先有各自的用户名。下载整片仍然先问过。
 
 #### 2. 技术演讲与长视频“省流蒸馏” (Branch 1)
 * **边界机制**：
@@ -138,6 +139,7 @@ Media Toolkit defines clear thresholds and operational boundaries across 8 core 
 * **Mode A (Flat Probe)**: Fetches title, duration, author, and URL in <1 second without downloading media bytes.
 * **Mode B (Direct Pull)**: One-shot grabs the highest matching video or audio stream.
 * **Prompt**: *"Search YouTube for recent talks on 'DeepSeek-V3 architecture', show the top 3 candidates, and download the audio for the best match."*
+* **Account videos**: given one or more handles, each site gets one profile URL. Video sites list recent videos for the subtitle and summary path. A group needs those handles first. Full downloads still ask first.
 
 #### 2. Technical Talk Distillation (Branch 1)
 * **Boundaries & Mechanics**: 

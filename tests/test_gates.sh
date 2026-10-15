@@ -52,6 +52,7 @@ printf '%s\n' "$dry" | grep -q 'reach-policy: no sudo'
 # and a fake doctor JSON is summarized without printing channel messages.
 PATH="/usr/bin:/bin" bash "$ROOT/scripts/doctor.sh" > "$TMP/doc-absent.txt" || true
 grep -q 'capability discovery (agent-reach): absent' "$TMP/doc-absent.txt"
+grep -q 'capability accounts: not-ready' "$TMP/doc-absent.txt"
 cat > "$TMP/bin/agent-reach" <<EOF
 #!/bin/sh
 if [ "\$1" = "doctor" ] && [ "\$2" = "--json" ]; then
@@ -67,5 +68,52 @@ if grep -q 'secret-should-not-print' "$TMP/doc-reach.txt"; then
   printf 'doctor must not print agent-reach channel messages\n' >&2
   exit 1
 fi
+
+# Account lookup is a plan until --yes, and --yes must not download.
+plan="$(bash "$ROOT/scripts/person.sh" someuser)"
+printf '%s\n' "$plan" | grep -q 'action: not started'
+printf '%s\n' "$plan" | grep -q 'sites: YouTube Twitter GitHub Reddit Instagram TikTok Vimeo SoundCloud Twitch'
+printf '%s\n' "$plan" | grep -q 'probe: one profile URL per site'
+if printf '%s\n' "$plan" | grep -q 'action: listed'; then
+  printf 'person plan must not list yet\n' >&2
+  exit 1
+fi
+
+cat > "$TMP/bin/yt-dlp" <<EOF
+#!/bin/sh
+printf '%s\n' "\$*" >> "$TMP/person-yt-log"
+cat <<JSON
+{"entries":[{"title":"Talk","webpage_url":"https://www.youtube.com/watch?v=abc"},{"title":"Other","id":"def","url":"def"}]}
+JSON
+EOF
+chmod +x "$TMP/bin/yt-dlp"
+PATH="$TMP/bin:$PATH" bash "$ROOT/scripts/person.sh" --yes --sites YouTube -o "$TMP/out" --limit 2 someuser > "$TMP/person.txt"
+grep -q 'action: listed' "$TMP/person.txt"
+grep -q 'videos: 2' "$TMP/person.txt"
+python3 - "$TMP/out/videos.json" <<'PY'
+import json, sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+urls = [item["url"] for item in data["items"]]
+assert urls == [
+    "https://www.youtube.com/watch?v=abc",
+    "https://www.youtube.com/watch?v=def",
+], urls
+assert all(item["platform"] == "youtube" for item in data["items"])
+PY
+if ! grep -q 'https://www.youtube.com/@someuser' "$TMP/person-yt-log"; then
+  printf 'video list must use the profile URL\n' >&2
+  exit 1
+fi
+if grep -q 'merge-output-format\|-x ' "$TMP/person-yt-log"; then
+  printf 'person listing must not download\n' >&2
+  exit 1
+fi
+
+# A group title is not an account scan.
+if PATH="$TMP/bin:/usr/bin:/bin" bash "$ROOT/scripts/person.sh" "some group" >/dev/null 2>"$TMP/bad.txt"; then
+  printf 'a group phrase must not run\n' >&2
+  exit 1
+fi
+grep -q 'not an account name' "$TMP/bad.txt"
 
 printf 'gates: ok\n'

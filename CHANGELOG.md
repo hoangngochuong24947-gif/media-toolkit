@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Account videos: `scripts/person.sh` plans, then with `--yes` opens one profile URL per media site and lists recent videos into `people.json`, `videos.json`, and `sources.txt`. No file download and no Sherlock install. URL shapes follow Sherlock's site rows; video sites go through `yt-dlp`.
 - README: a "what yt-dlp can and cannot do" checklist — the supported search, format, download, subtitle, playlist, cookie, and recovery paths, and the boundaries (DRM, live edge, region locks, bot checks on datacenter IPs, no LLM work).
 - `tests/test_gates.sh`: the Agent-Reach dry-run assertion accepts any of the three valid reach plans (keep an installed CLI, plan the pipx install, report a missing Python 3.10+). The suite no longer fails on a machine that already has `agent-reach`, or on a host whose only `python3` is Apple's 3.9.
 - Optional Agent-Reach companion (MIT, not vendored): `doctor.sh` reports `discovery (agent-reach)` and per-channel `active_backend`; `bootstrap.sh --with-reach` installs the GitHub zip with pipx or a user venv and does not configure logins.

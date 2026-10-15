@@ -2,7 +2,7 @@
 
 Run `bash scripts/doctor.sh` first. It names the missing tool and prints an install command. Required for exit 0: `ffmpeg`, `ffprobe`, and `yt-dlp` on `PATH`.
 
-Search, subtitle download, and doctor do not need a confirmation. System packages, full media downloads, local ASR, browser cookies, X login credentials, Agent-Reach install, and batch loops do. See the table in `SKILL.md`. `bootstrap.sh`, `download.sh`, and `transcribe.sh` print a plan and exit 0 until `--yes`. A missing `agent-reach` command does not fail doctor.
+Search, subtitle download, and doctor do not need a confirmation. System packages, full media downloads, local ASR, browser cookies, X login credentials, Agent-Reach install, an account lookup (`person.sh`), and batch loops do. See the table in `SKILL.md`. `bootstrap.sh`, `download.sh`, `transcribe.sh`, and `person.sh` print a plan and exit 0 until `--yes`. A missing `agent-reach` command does not fail doctor.
 
 ## Where you are running
 
