@@ -19,6 +19,7 @@ Cheap reads go ahead. Costly steps stop until the user agrees.
 | Browser cookies | Yes, once | Ask which browser and profile. Pass them only with `--yes` |
 | X login (`TWITTER_AUTH_TOKEN`, `TWITTER_CT0`, or X cookies) | Yes, once | Ask. Pass via the environment. Never echo or commit the values |
 | Agent-Reach CLI | Yes | `bootstrap.sh --with-reach` is a dry-run. It does not configure logins |
+| Listing one account's videos | Yes | `person.sh` prints the plan and exits 0. After a yes, `--yes` writes `sources.txt` and does not download |
 | A loop over many files | Yes | Show the count, then wait |
 
 `--yes` and `MEDIA_CONFIRM=1` mean the user already agreed. Do not pass them first.

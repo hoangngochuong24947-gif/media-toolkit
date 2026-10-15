@@ -283,11 +283,18 @@ else
   info "Ask the user, then: bash scripts/bootstrap.sh --with-reach    (dry-run until --yes)"
 fi
 
+if have yt-dlp && have python3; then
+  accounts="ready"
+else
+  accounts="not-ready"
+fi
+
 printf '%s\n' "capability local-media: ${local_media}"
 printf '%s\n' "capability online-download: ${online}"
 printf '%s\n' "capability transcription: ${transcription}"
 printf '%s\n' "capability images: ${images}"
 printf '%s\n' "capability discovery (agent-reach): ${discovery}"
+printf '%s\n' "capability accounts: ${accounts}"
 if [ -n "$IM_KIND" ]; then
   printf '%s\n' "imagemagick-choice: ${IM_KIND}"
 else

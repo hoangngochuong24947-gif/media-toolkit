@@ -15,6 +15,7 @@ Do not `pip install agent-reach` from PyPI. Upstream says that name is a differe
 | Bilibili search when yt-dlp returns HTTP 412 | `bili search` (bili-cli). Keep the BV link it returns |
 | YouTube search when yt-dlp works | yt-dlp `ytsearch` is enough. Agent-Reach uses yt-dlp for YouTube too |
 | Download, subtitles, transcription, trim, GIF, compress, images | media-toolkit |
+| Where a handle has a profile, then that profile's videos | `scripts/person.sh` builds the profile URL and lists videos into `sources.txt` |
 
 `bash scripts/doctor.sh` prints `capability discovery (agent-reach): absent|ready|degraded` and, when the CLI answers, one `discovery-backend:` line per channel (`status` and `active_backend` only). A missing CLI is not a failure.
 
@@ -47,6 +48,32 @@ python3 scripts/optional_tools.py sources ./output/<task>/sources.json --platfor
 ```
 
 That only prints URLs. Subtitles, `download.sh`, and `transcribe.sh` consume those URLs under the usual confirmation gates. Save the post text you actually read (twitter CLI stdout, Reddit thread, XiaoHongShu note) next to the file, for example `posts.txt`. The report cites that text and, for videos, timestamps from `subs_to_text.sh`.
+
+## A person's videos
+
+No username scanner is installed. A handle becomes one profile URL per media site, then `yt-dlp` lists videos from the video sites. The URL shapes for YouTube, X, GitHub, Reddit, Instagram, TikTok, Vimeo, SoundCloud, and Twitch follow the site rows in Sherlock's `data.json` (MIT, https://github.com/sherlock-project/sherlock). GitHub's host here is `github.com`, not `www.github.com`. X and Instagram are not sent to the third-party frontends in that file.
+
+`bash scripts/doctor.sh` prints `capability accounts: ready|not-ready`. Ready means `yt-dlp` and `python3` are on `PATH`.
+
+```bash
+bash scripts/person.sh someuser
+# plan, exit 0
+bash scripts/person.sh --yes -o ./output/someuser --limit 8 someuser
+```
+
+`--yes` writes:
+
+- `people.json` — one card per claimed profile (`handle`, `platform`, `profile_url`, `videos`)
+- `videos.json` — the same shape as `sources.json` (`url`, `platform`, `title`, `author`, `profile_url`)
+- `sources.txt` — one video URL per line
+
+YouTube, Instagram, TikTok, Vimeo, SoundCloud, and Twitch cards are a flat video list (no file download). A list means the account is there. An error leaves the card unchecked, because a bot check looks like a missing account. GitHub and Reddit are one page request: 404, or Reddit's "nobody on Reddit goes by that name", drops the card. X is dropped only when its own page says the account is missing; otherwise the card stays unchecked and keeps the link. Do not invent video URLs for X, GitHub, or Reddit. X posts still go through Agent-Reach; a status URL that contains video still goes through yt-dlp.
+
+Several people are several handles: `person.sh --yes alice bob`. A sentence like "people in this group" needs those handles first. Take them from the user, or from authors already chosen out of a topic search. Same spelling on two sites stays two cards until the user picks.
+
+A URL the user already has skips the handle templates: `person.sh --yes --profile "https://www.youtube.com/@someuser"`.
+
+After the list, subtitles use `sources.txt` with no extra confirm. `download.sh` still prints a plan and waits. The host reads the text and writes `report.md`.
 
 ## X / Twitter
 

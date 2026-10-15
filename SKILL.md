@@ -1,6 +1,6 @@
 ---
 name: media-toolkit
-description: "Process video, audio, and images, including X/Twitter videos. Use for search, download, trim, compress, GIF, audio extract, image convert, subtitles, transcribe, or a summary of a video or of videos inside posts. Optional Agent-Reach discovers pages and posts. The host agent writes the summary. This skill does not call an LLM."
+description: "Process video, audio, and images, including X/Twitter videos. Use for search, download, trim, compress, GIF, audio extract, image convert, subtitles, transcribe, a summary of a video or of videos inside posts, or the videos on a person's accounts. Optional Agent-Reach discovers pages and posts. The host agent writes the summary. This skill does not call an LLM."
 version: "1.0.0"
 license: MIT
 compatibility: "macOS, Linux, or Windows via WSL or Git Bash. Needs bash, ffmpeg, ffprobe, yt-dlp, ImageMagick, and deno or node. Optional ASR uses a local python3 venv."
@@ -35,6 +35,7 @@ Call `ffmpeg`, `ffprobe`, `yt-dlp`, and ImageMagick yourself. Scripts are shortc
 | sudo / system packages | Yes | `bootstrap.sh` is a dry-run. Then `--yes` |
 | Browser cookies, or X `TWITTER_AUTH_TOKEN` / `TWITTER_CT0` | Yes, once | Ask which browser or confirm the env vars. Never echo or commit them |
 | Agent-Reach CLI | Yes | `bash scripts/bootstrap.sh --with-reach` (dry-run). Then `--yes`. No logins |
+| A person's accounts and video list | Yes | `bash scripts/person.sh HANDLE` prints the plan and exits 0. Then `--yes`. One URL per site, no download |
 | Loop over many files | Yes | Show the count, then wait |
 
 `--yes` or `MEDIA_CONFIRM=1` means the user already said yes. Do not pass it on the first run. Details: `references/distill-workflow.md`.
@@ -45,6 +46,7 @@ Call `ffmpeg`, `ffprobe`, `yt-dlp`, and ImageMagick yourself. Scripts are shortc
 | :--- | :--- | :--- |
 | Search | `yt-dlp --flat-playlist --print "%(title)s \| %(webpage_url)s" "ytsearch5:QUERY"` or `bilisearch5:` | `references/yt-dlp.md` |
 | Posts, X, Reddit, XiaoHongShu, Bilibili search after HTTP 412 | `agent-reach doctor --json`, then the upstream command for `active_backend` | `references/discovery.md` |
+| One account, or several named accounts | `bash scripts/person.sh HANDLE` (plan, then `--yes`) | `references/discovery.md` |
 | Download | `bash scripts/download.sh URL` (plan, then `--yes`) | `references/yt-dlp.md` |
 | Notes | Subs, then `subs_to_text.sh`, then you write the report | `references/distill-workflow.md` |
 | Report | Copy `references/report-template.md` | you fill it in |
@@ -82,6 +84,23 @@ Full command list: `references/distill-workflow.md`.
 User: `看看 X 上大家怎么评价 <topic>，把里面的视频也总结一下`
 
 Search and post text go through Agent-Reach (`twitter search`). Video status URLs go through `yt-dlp --simulate -F`, then subtitles or `download.sh`. Ask once before X cookies or `TWITTER_AUTH_TOKEN` / `TWITTER_CT0`. Write `./output/<topic>/sources.json` (`url`, `platform`, `title`, `author`, `published`, `why_selected`). Exact commands: `references/discovery.md`.
+
+User: `看看这个人的账号，把他的视频拿去总结`
+
+```bash
+bash scripts/doctor.sh
+bash scripts/person.sh someuser
+# stop until yes. A group is several handles: person.sh alice bob
+bash scripts/person.sh --yes -o ./output/someuser someuser
+# people.json is one card per found profile. videos.json and sources.txt are the videos.
+# subtitles, no ask, one URL per line from sources.txt:
+yt-dlp --write-sub --write-auto-sub --sub-langs "zh-Hans,zh-CN,en" --convert-subs srt --skip-download \
+  -P ./output/someuser/subs -o "%(id)s.%(ext)s" -a ./output/someuser/sources.txt
+bash scripts/subs_to_text.sh ./output/someuser/subs/*.srt -o ./output/someuser/text
+# read the text and write report.md. Full files only if asked: download.sh, then --yes
+```
+
+A group name without account names is not a scan. Ask which handles, or take authors the user already picked. `--profile URL` lists that one page and does not call Sherlock.
 
 ## ImageMagick and hardware
 
